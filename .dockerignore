@@ -1,0 +1,11 @@
+__pycache__/
+.venv/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.log
+.env
+.git
+.notebooks/
+.notebook_checkpoints/
