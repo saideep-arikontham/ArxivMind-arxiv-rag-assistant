@@ -1,4 +1,23 @@
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5433:5432"             # host:container (so your local pgAdmin uses 5433)
+    volumes:
+      - pg_data:/var/lib/postgresql/data   # <— named volume persists data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -32,19 +51,21 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: api
     container_name: fastapi
     depends_on:
+      db:
+        condition: service_healthy
       ollama:
         condition: service_healthy
       ollama-pull:
         condition: service_completed_successfully
+    env_file:
+      - .env
     environment:
-      - MODEL_NAME=${OLLAMA_DEFAULT_MODEL:-llama3.2}
-      - TEMPERATURE=${DEFAULT_TEMPERATURE:-0.7}
       - OLLAMA_HOST=http://ollama:11434
       - NVIDIA_NIM_API_KEY=${NVIDIA_NIM_API_KEY}
+      - NVIDIA_NIM_DEFAULT_MODEL=${NVIDIA_NIM_DEFAULT_MODEL}
+      - DATABASE_URL=${DATABASE_URL}   # points to db:5432 (see .env below)
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -58,6 +79,8 @@ services:
     depends_on:
       api:
         condition: service_started
+    env_file:
+      - .env
     environment:
       - BACKEND_URL=http://api:8000
     ports:
@@ -65,4 +88,5 @@ services:
     restart: unless-stopped
 
 volumes:
+  pg_data:     # <— named volume (persists DB)
   ollama:
