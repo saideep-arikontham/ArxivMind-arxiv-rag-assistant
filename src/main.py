@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI, HTTPException, Query
 from src.services.ollama.client import OllamaModel
-from schemas.chat_schema import ChatModel, ResponseModel
+from src.schemas.chat_schema import ChatModel, ResponseModel
 from src.services.nvidia_nim.client import NvidiaNimModel
 
 app = FastAPI()
@@ -12,10 +12,10 @@ def root():
 
 
 @app.post("/chat_ollama", response_model=ResponseModel)
-def chat_with_model(chat: ChatModel):
+async def chat_with_model(chat: ChatModel):
     try:
         model = OllamaModel()
-        response = model.prompt_model(chat.query)
+        response = await model.prompt_model(chat.query)
         return ResponseModel(response=response)
     
     except Exception as e:
@@ -34,7 +34,7 @@ def chat_with_model(chat: ChatModel):
 
 
 @app.post("/chat_nvidia", response_model=ResponseModel)
-def chat_with_model(
+async def chat_with_model(
     chat: ChatModel,
     model_name: str | None = Query(
         None, description="Model name, e.g., deepseek-ai/deepseek-v3"
@@ -56,7 +56,8 @@ def chat_with_model(
         sid = session_id or f"default::{selected_model}"
 
         model = NvidiaNimModel(model_name=selected_model)
-        response = model.prompt_model(chat.query, session_id=sid)
+        response = await model.prompt_model(chat.query, session_id=sid)
+
         return ResponseModel(response=response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
