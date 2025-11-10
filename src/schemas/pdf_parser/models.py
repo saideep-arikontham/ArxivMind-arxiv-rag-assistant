@@ -1,0 +1,36 @@
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
+
+class PaperSection(BaseModel):
+    """Represents a section of a paper."""
+
+    title: str = Field(..., description="Section title")
+    content: str = Field(..., description="Section content")
+    level: int = Field(default=1, description="Section hierarchy level")
+
+class PaperFigure(BaseModel):
+    """Represents a figure in the paper."""
+
+    caption: str = Field(..., description="Figure caption")
+    image_data: Optional[bytes] = Field(None, description="Binary data of the figure image")
+
+
+class PaperTable(BaseModel):
+    """Represents a table in the paper."""
+
+    caption: str = Field(..., description="Table caption")
+    data: List[List[Any]] = Field(..., description="2D list representing table data")
+
+
+class PdfContent(BaseModel):
+    """PDF-specific content extracted by parsers like Docling."""
+
+    sections: List[PaperSection] = Field(default_factory=list, description="Paper sections")
+    figures: List[PaperFigure] = Field(default_factory=list, description="Figures")
+    tables: List[PaperTable] = Field(default_factory=list, description="Tables")
+    raw_text: str = Field(..., description="Full extracted text")
+    references: List[str] = Field(default_factory=list, description="References")
+    parser_used: str = Field(..., description="Parser used for extraction: DOCLING")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Parser metadata")
