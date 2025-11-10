@@ -13,5 +13,11 @@ dependencies = [
   "langchain-ollama>=0.1",
   "langchain-nvidia-ai-endpoints>=0.1",
   "python-dotenv>=1.0",
-  "langchain-community>=0.0.34"
+  "langchain-community>=0.0.34",
+  "sqlalchemy[asyncio]>=2.0",
+  "asyncpg>=0.29",
+  "alembic>=1.13",
+  "docling>=2.43.0",
+  "arxiv>=2.0.0",
+  "ipykernel>=6.29,<7.0"
 ]
