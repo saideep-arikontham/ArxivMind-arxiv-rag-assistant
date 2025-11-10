@@ -82,7 +82,7 @@ class NvidiaNimModel:
             history_messages_key="history",  # The key for the MessagesPlaceholder
         )
 
-    def prompt_model(self, query: str, session_id: str = "default_session") -> str:
+    async def prompt_model(self, query: str, session_id: str = "default_session") -> str:
         """
         Runs the model with conversation memory.
         
@@ -93,7 +93,7 @@ class NvidiaNimModel:
         # 5. Invoke the chain, passing the session_id in the 'config'
         # The wrapper will automatically load history for this session_id,
         # run the chain, and save the new query/response to the history.
-        response = self.chain_with_history.invoke(
+        response = await self.chain_with_history.ainvoke(
             {"query": query},
             config={"configurable": {"session_id": session_id}}
         )

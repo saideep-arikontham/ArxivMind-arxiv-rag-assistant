@@ -7,7 +7,8 @@ class OllamaModel:
     def __init__(self, model_name: str = "llama3.2", temperature: float = 0.7):
         self.llm = ChatOllama(model=model_name, temperature=temperature)
 
-    def prompt_model(self, query: str) -> str:
+    async def prompt_model(self, query: str) -> str:
+        """Asynchronously invoke the Ollama chain and return the response string."""
         prompt = PromptTemplate(
             input_variables=["query"],
             template="{query}"
@@ -16,5 +17,5 @@ class OllamaModel:
         parser = StrOutputParser()
         chain = prompt | self.llm | parser
 
-        response = chain.invoke({"query":query})
+        response = await chain.ainvoke({"query": query})
         return response
