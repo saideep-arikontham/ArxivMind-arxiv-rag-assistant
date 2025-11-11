@@ -22,9 +22,16 @@ async def get_session() -> AsyncSession:
     async with AsyncSessionLocal() as session:
         yield session
 
+
 @app.get("/")
 def root():
     return {"message": "A simple chatbot"}
+
+
+@app.get("/api/v1/health")
+def health():
+    return {"status": "ok"}
+
 
 @app.post("/chat_ollama", response_model=ResponseModel)
 async def chat_with_ollama(chat: ChatModel):
