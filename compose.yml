@@ -1,3 +1,11 @@
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  pg_data:
+  ollama:
+
 services:
   db:
     image: postgres:16-alpine
@@ -8,15 +16,16 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5433:5432"             # host:container (so your local pgAdmin uses 5433)
+      - "5433:5432"  # host 5433 -> container 5432 (for local tools)
     volumes:
-      - pg_data:/var/lib/postgresql/data   # <— named volume persists data
+      - pg_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 10
     restart: unless-stopped
+    networks: [app-net]
 
   ollama:
     image: ollama/ollama:latest
@@ -33,7 +42,9 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
+    networks: [app-net]
 
+  # Pull the default model once Ollama is healthy
   ollama-pull:
     image: ollama/ollama:latest
     depends_on:
@@ -47,10 +58,12 @@ services:
     volumes:
       - ollama:/root/.ollama
     restart: "no"
+    networks: [app-net]
 
   api:
     build:
       context: .
+      # ensure your Dockerfile's final stage is the default (it is)
     container_name: fastapi
     depends_on:
       db:
@@ -65,16 +78,23 @@ services:
       - OLLAMA_HOST=http://ollama:11434
       - NVIDIA_NIM_API_KEY=${NVIDIA_NIM_API_KEY}
       - NVIDIA_NIM_DEFAULT_MODEL=${NVIDIA_NIM_DEFAULT_MODEL}
-      - DATABASE_URL=${DATABASE_URL}   # points to db:5432 (see .env below)
+      # IMPORTANT: internal DNS/port for Postgres
+      - DATABASE_URL=${DATABASE_URL}
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     restart: unless-stopped
+    networks: [app-net]
 
   streamlit:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: streamlit
+      target: streamlit   # <- uses the new stage in your Dockerfile
     container_name: streamlit
     depends_on:
       api:
@@ -82,11 +102,8 @@ services:
     env_file:
       - .env
     environment:
-      - BACKEND_URL=http://api:8000
+      - BACKEND_URL=http://api:8000  # internal URL to FastAPI
     ports:
       - "8501:8501"
     restart: unless-stopped
-
-volumes:
-  pg_data:     # <— named volume (persists DB)
-  ollama:
+    networks: [app-net]
