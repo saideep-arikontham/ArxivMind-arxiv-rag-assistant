@@ -5,6 +5,7 @@ networks:
 volumes:
   pg_data:
   ollama:
+  airflow_logs:
 
 services:
   db:
@@ -106,4 +107,41 @@ services:
     ports:
       - "8501:8501"
     restart: unless-stopped
+    networks: [app-net]
+
+  airflow:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    container_name: rag-airflow
+    # user: "50000:0"  # Uncomment for WSL/Ubuntu, comment out for Mac
+    depends_on:
+      db:
+        condition: service_healthy
+      # opensearch:
+      #   condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Airflow-specific environment setup
+      - AIRFLOW_HOME=/opt/airflow
+      - PYTHONPATH=/opt/airflow/src
+      # Container hostnames for Airflow
+      - POSTGRES_DATABASE_URL=${DATABASE_URL}
+      # - OPENSEARCH_HOST=http://opensearch:9200
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./src:/opt/airflow/src
+    ports:
+      - "8080:8080"
+    # Command handled by entrypoint.sh
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     networks: [app-net]
