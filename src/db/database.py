@@ -16,7 +16,7 @@ engine = create_async_engine(
     pool_pre_ping=True,  # healthier long-running connections
 )
 
-AsyncSessionLocal: sessionmaker[AsyncSession] = sessionmaker(
+AsyncSessionLocal= sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,
