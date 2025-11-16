@@ -20,8 +20,7 @@ AsyncSessionLocal: sessionmaker[AsyncSession] = sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,
-    autoflush=False,
-    autocommit=False,
+    autoflush=False
 )
 
 async def init_db() -> None:
