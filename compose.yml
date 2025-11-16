@@ -110,7 +110,7 @@ services:
     networks: [app-net]
 
   airflow:
-    build:
+    build: 
       context: ./airflow
       dockerfile: Dockerfile
     container_name: rag-airflow
@@ -118,18 +118,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      # opensearch:
-      #   condition: service_healthy
     env_file:
       - .env
     environment:
       # Airflow-specific environment setup
       - AIRFLOW_HOME=/opt/airflow
+      - AIRFLOW__CORE__AUTH_MANAGER=airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+      - AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL=30
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - PYTHONPATH=/opt/airflow/src
       # Container hostnames for Airflow
       - POSTGRES_DATABASE_URL=${DATABASE_URL}
       # - OPENSEARCH_HOST=http://opensearch:9200
-      - OLLAMA_HOST=http://ollama:11434
+      # - OPENSEARCH__HOST=http://opensearch:9200
+      # - OLLAMA_HOST=http://ollama:11434
+      # - REDIS__HOST=redis
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - airflow_logs:/opt/airflow/logs
