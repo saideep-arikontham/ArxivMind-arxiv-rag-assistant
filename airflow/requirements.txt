@@ -1,0 +1,20 @@
+# Astro Runtime includes the following pre-installed providers packages: https://www.astronomer.io/docs/astro/runtime-image-architecture#provider-packages
+# Core dependencies needed for Airflow tasks
+apache-airflow-providers-fab
+httpx>=0.27.0
+sqlalchemy[asyncio]==1.4.54
+# async driver required by src.db.database (postgresql+asyncpg)
+asyncpg>=0.29
+alembic>=1.13
+pydantic>=2.0.0,<3.0.0
+python-dateutil>=2.8.0
+
+# PDF processing dependencies
+docling>=2.43.0
+arxiv>=2.0.0
+
+# Search engine dependencies
+opensearch-py>=2.4.0
+
+# Database drivers
+psycopg2-binary>=2.9.0

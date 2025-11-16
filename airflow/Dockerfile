@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 # Set environment variables
 ENV AIRFLOW_HOME=/opt/airflow
-ENV AIRFLOW_VERSION=2.10.3
+ENV AIRFLOW_VERSION=3.1.3
 ENV PYTHON_VERSION=3.12
 ENV CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
 
@@ -34,8 +34,10 @@ RUN pip install --no-cache-dir \
     --constraint "${CONSTRAINT_URL}" \
     psycopg2-binary
 
+RUN apt-get update && apt-get install -y procps
+
 # Copy requirements and install project dependencies
-COPY requirements-airflow.txt /tmp/requirements-airflow.txt
+COPY requirements.txt /tmp/requirements-airflow.txt
 RUN pip install --no-cache-dir -r /tmp/requirements-airflow.txt
 
 # Copy and set up entrypoint script
