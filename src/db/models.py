@@ -1,4 +1,4 @@
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import declarative_base
 from sqlalchemy import Integer, JSON, Boolean, Column, DateTime, String, Text
 import uuid
 from datetime import datetime, timezone
@@ -10,18 +10,18 @@ Base = declarative_base()
 
 class FirstTable(Base):
     __tablename__ = "first_table"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(String, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
 
 
 class ChatHistory(Base):
     __tablename__ = "chat_history"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_query: Mapped[str] = mapped_column(String, index=True)
-    model_response: Mapped[str] = mapped_column(String, index=True)
-    model_used: Mapped[str] = mapped_column(String, index=True)
-    user_query_timestamp: Mapped[DateTime] = mapped_column(DateTime)
-    model_response_timestamp: Mapped[DateTime] = mapped_column(DateTime)
+    id = Column(Integer, primary_key=True, index=True)
+    user_query = Column(String, index=True)
+    model_response = Column(String, index=True)
+    model_used = Column(String, index=True)
+    user_query_timestamp = Column(DateTime)
+    model_response_timestamp = Column(DateTime)
 
 
 class Paper(Base):
