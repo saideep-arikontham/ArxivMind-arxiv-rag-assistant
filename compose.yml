@@ -20,6 +20,7 @@ services:
       - "5433:5432"  # host 5433 -> container 5432 (for local tools)
     volumes:
       - pg_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -127,8 +128,10 @@ services:
       - AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL=30
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - PYTHONPATH=/opt/airflow/src
-      # Container hostnames for Airflow
-      - POSTGRES_DATABASE_URL=${DATABASE_URL}
+      # tell Airflow to use Postgres
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=${AIRFLOW_DATABASE_URL}
+      # (optional, for older code paths)
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=${AIRFLOW_DATABASE_URL}
       # - OPENSEARCH_HOST=http://opensearch:9200
       # - OPENSEARCH__HOST=http://opensearch:9200
       # - OLLAMA_HOST=http://ollama:11434
