@@ -4,6 +4,12 @@ import psycopg2
 import requests
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+import sys
+import asyncio
+
+sys.path.insert(0, "/opt/airflow")
+
+from src.db.utils.chat_history import insert_into_first_table
 
 
 def hello_world():
@@ -28,6 +34,11 @@ def check_services():
     except Exception as e:
         print(f"Service check failed: {e}")
         raise
+
+def log_in_table():
+    """Log a record into postgres table"""
+    asyncio.run(insert_into_first_table(name="Dag Ran Successfully"))
+
 
 
 # DAG configuration
@@ -64,5 +75,11 @@ service_check_task = PythonOperator(
     dag=dag,
 )
 
+record_successful_dag_run = PythonOperator(
+    task_id="log_in_table",
+    python_callable=log_in_table,
+    dag=dag,
+)
+
 # Set task dependencies
-hello_task >> service_check_task
+hello_task >> service_check_task >> record_successful_dag_run
